@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "proto;service";
+option go_package = "github.com/pnaskardev/URL-Shortner-V1/core/proto/auth;auth";
 
 message AuthRequest {
     int64 a=1;

@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
+	rpc_service "github.com/pnaskardev/URL-Shortner-V1/core/rpc"
 )
 
 func main() {
@@ -21,6 +22,10 @@ func main() {
 	}
 
 	config := config.GetConfig()
+	err = rpc_service.LoadNewClients()
+	if err != nil {
+		panic(err)
+	}
 
 	app := fiber.New()
 	app.Use(logger.New())
