@@ -9,6 +9,7 @@ var rpcClientInstance *RPCClients
 
 func LoadNewClients() error {
 
+	// TODO add Auth Microservice URL
 	authClient, err := NewAuthRPCClientConnection("")
 	if err != nil {
 		return err
