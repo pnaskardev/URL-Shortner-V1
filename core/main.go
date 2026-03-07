@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
+	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/container"
 )
 
 func main() {
@@ -22,6 +23,7 @@ func main() {
 
 	config := config.GetConfig()
 
+	rpcContainer := container.Init()
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(recover.New())
@@ -60,6 +62,7 @@ func main() {
 	// Your cleanup tasks go here
 	// db.Close()
 	// redisConn.Close()
+	rpcContainer.RPC.Close()
 	fmt.Println("Fiber was successful shutdown.")
 
 }
