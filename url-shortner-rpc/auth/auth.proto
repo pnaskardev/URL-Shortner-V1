@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/pnaskardev/URL-Shortner-V1/url-shortner-rpc/auth";
+
+// Service encapsulating all Auth related methods
+service Auth {
+  // SignIn Request
+  rpc SignIn (HelloRequest) returns (HelloReply) {}
+
+  // SignUp Request
+  rpc SignUp (HelloRequest) returns (HelloReply) {}
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}
