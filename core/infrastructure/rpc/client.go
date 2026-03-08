@@ -1,8 +1,9 @@
 package rpc
 
 import (
-	"log"
+	"fmt"
 	"sync"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -13,30 +14,28 @@ type RPCClient struct {
 	once sync.Once
 }
 
-func NewRPCClient(addr string) *RPCClient {
-	return &RPCClient{}
+func NewRPCClient(addr string) (*RPCClient, error) {
+
+	conn, err := grpc.NewClient(addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithConnectParams(grpc.ConnectParams{
+			MinConnectTimeout: 3 * time.Second,
+		}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("grpc.NewClient: %w", err)
+	}
+
+	return &RPCClient{conn: conn}, nil
 }
 
-var defaultAddr = "localhost:3000"
-
-func (c *RPCClient) Connect(addr string) {
-	c.once.Do(func() {
-		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			log.Fatalf("failed to connect to RPC server: %v", err)
-		}
-
-		c.conn = conn
-	})
-
-}
-
-func (c *RPCClient) Conn() *grpc.ClientConn {
+func (c *RPCClient) GetConn() *grpc.ClientConn {
 	return c.conn
 }
 
-func (c *RPCClient) Close() {
+func (c *RPCClient) Close() error {
 	if c.conn != nil {
-		c.conn.Close()
+		return c.conn.Close()
 	}
+	return nil
 }

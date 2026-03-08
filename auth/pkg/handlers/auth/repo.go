@@ -2,6 +2,7 @@ package authhandler
 
 import (
 	"context"
+	"fmt"
 
 	authPB "github.com/pnaskardev/URL-Shortner-V1/url-shortner-rpc/auth"
 )
@@ -16,10 +17,12 @@ func NewAuthHandler() *AuthHandler {
 
 func (h *AuthHandler) SignIn(ctx context.Context, req *authPB.HelloRequest) (*authPB.HelloReply, error) {
 	// validate, check password, generate token
-	return &authPB.HelloReply{}, nil
+	fmt.Println(req.Name)
+	return &authPB.HelloReply{Message: fmt.Sprintf("HELLO, %s", req.Name)}, nil
 }
 
 func (h *AuthHandler) SignUp(ctx context.Context, req *authPB.HelloRequest) (*authPB.HelloReply, error) {
 	// validate, create user, generate token
+	fmt.Println("SIGN UP INVOKED")
 	return &authPB.HelloReply{}, nil
 }

@@ -1,36 +1,37 @@
 package rpc
 
 import (
+	"fmt"
+
 	"google.golang.org/grpc"
 )
 
-type Server struct {
+type RPCServer struct {
 	grpc    *grpc.Server
 	address string
 }
 
-func NewServer(address string) *Server {
-	return &Server{
+func NewRPCServer(address string) *RPCServer {
+	return &RPCServer{
 		grpc:    grpc.NewServer(),
 		address: address,
 	}
 }
 
-// Register allows each service to mount itself onto the server
-// Usage: server.Register(func(s *grpc.Server) { authPB.RegisterAuthServer(s, &myImpl{}) })
-func (s *Server) Register(fn func(*grpc.Server)) {
+func (s *RPCServer) Register(fn func(*grpc.Server)) {
 	fn(s.grpc)
 }
 
-func (s *Server) GetServer() *grpc.Server {
+func (s *RPCServer) GetServer() *grpc.Server {
 	return s.grpc
 }
 
-func (s *Server) GetAddr() string {
+func (s *RPCServer) GetAddr() string {
 	return s.address
 }
 
-func (s *Server) Stop() {
+func (s *RPCServer) Stop() {
+	fmt.Println("GRACEFULLY STOPPING THE FRPC SERVER")
 	if s.grpc != nil {
 		s.grpc.GracefulStop()
 	}

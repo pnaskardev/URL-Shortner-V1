@@ -23,7 +23,8 @@ func main() {
 
 	config := config.GetConfig()
 
-	rpcContainer := container.Init()
+	container.InitContainer()
+
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(recover.New())
@@ -33,6 +34,16 @@ func main() {
 		duration := time.Since(start)
 		c.Append("Server-Timing", "app;dur="+duration.String())
 		return err
+	})
+
+	app.Post("/hello", func(c fiber.Ctx) error {
+		rpcContainer := container.Get()
+		reply, err := rpcContainer.Services.AuthRPCService.SignIn(c.Context())
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(reply)
+		return c.SendStatus(200)
 	})
 
 	app.Get("/", func(c fiber.Ctx) error {
@@ -62,7 +73,6 @@ func main() {
 	// Your cleanup tasks go here
 	// db.Close()
 	// redisConn.Close()
-	rpcContainer.RPC.Close()
 	fmt.Println("Fiber was successful shutdown.")
 
 }
