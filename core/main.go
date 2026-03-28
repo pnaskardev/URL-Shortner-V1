@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/pnaskardev/URL-Shortner-V1/core/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
 	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/container"
 )
@@ -36,15 +37,8 @@ func main() {
 		return err
 	})
 
-	app.Post("/hello", func(c fiber.Ctx) error {
-		rpcContainer := container.Get()
-		reply, err := rpcContainer.Services.AuthRPCService.SignIn(c.Context())
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(reply)
-		return c.SendStatus(200)
-	})
+	// Register all of the routes
+	routes.ApiRouter(app)
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World!")
