@@ -30,9 +30,9 @@ const (
 // Service encapsulating all Auth related methods
 type AuthClient interface {
 	// SignIn Request
-	SignIn(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
+	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	// SignUp Request
-	SignUp(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
+	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
 }
 
 type authClient struct {
@@ -43,9 +43,9 @@ func NewAuthClient(cc grpc.ClientConnInterface) AuthClient {
 	return &authClient{cc}
 }
 
-func (c *authClient) SignIn(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
+func (c *authClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(HelloReply)
+	out := new(SignInResponse)
 	err := c.cc.Invoke(ctx, Auth_SignIn_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -53,9 +53,9 @@ func (c *authClient) SignIn(ctx context.Context, in *HelloRequest, opts ...grpc.
 	return out, nil
 }
 
-func (c *authClient) SignUp(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
+func (c *authClient) SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(HelloReply)
+	out := new(SignUpResponse)
 	err := c.cc.Invoke(ctx, Auth_SignUp_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +70,9 @@ func (c *authClient) SignUp(ctx context.Context, in *HelloRequest, opts ...grpc.
 // Service encapsulating all Auth related methods
 type AuthServer interface {
 	// SignIn Request
-	SignIn(context.Context, *HelloRequest) (*HelloReply, error)
+	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
 	// SignUp Request
-	SignUp(context.Context, *HelloRequest) (*HelloReply, error)
+	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -83,10 +83,10 @@ type AuthServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAuthServer struct{}
 
-func (UnimplementedAuthServer) SignIn(context.Context, *HelloRequest) (*HelloReply, error) {
+func (UnimplementedAuthServer) SignIn(context.Context, *SignInRequest) (*SignInResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SignIn not implemented")
 }
-func (UnimplementedAuthServer) SignUp(context.Context, *HelloRequest) (*HelloReply, error) {
+func (UnimplementedAuthServer) SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SignUp not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
@@ -111,7 +111,7 @@ func RegisterAuthServer(s grpc.ServiceRegistrar, srv AuthServer) {
 }
 
 func _Auth_SignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
+	in := new(SignInRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -123,13 +123,13 @@ func _Auth_SignIn_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: Auth_SignIn_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).SignIn(ctx, req.(*HelloRequest))
+		return srv.(AuthServer).SignIn(ctx, req.(*SignInRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Auth_SignUp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
+	in := new(SignUpRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func _Auth_SignUp_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: Auth_SignUp_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).SignUp(ctx, req.(*HelloRequest))
+		return srv.(AuthServer).SignUp(ctx, req.(*SignUpRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

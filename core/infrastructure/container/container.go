@@ -30,9 +30,11 @@ var instance *Container
 
 func InitContainer() *Container {
 
-	address := "localhost:3000"
+	// Typically we are supposed to get these URLs from a different service like
+	// Hashicorp consul
+	authAddress := "localhost:3000"
 
-	authClient, err := rpc.NewRPCClient(address)
+	authClient, err := rpc.NewRPCClient(authAddress)
 	if err != nil {
 		panic(err)
 	}

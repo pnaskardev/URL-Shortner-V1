@@ -7,18 +7,41 @@ option go_package = "github.com/pnaskardev/URL-Shortner-V1/url-shortner-rpc/auth
 // Service encapsulating all Auth related methods
 service Auth {
   // SignIn Request
-  rpc SignIn (HelloRequest) returns (HelloReply) {}
+  rpc SignIn (SignInRequest) returns (SignInResponse) {}
 
   // SignUp Request
-  rpc SignUp (HelloRequest) returns (HelloReply) {}
+  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
 }
 
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
+// SignUp Request with username and password
+message SignUpRequest {
+  string username = 1;
+  string password = 2;
 }
 
-// The response message containing the greetings
-message HelloReply {
-  string message = 1;
+// SignUpResponse
+message SignUpResponse{
+  bool success=1;
+  bool message =2;
 }
+
+message SignInRequest {
+  string username=1;
+  string password=2;
+}
+
+message SignInResponse {
+  bool success=1;
+  string message=2;
+  string jwt_key=3;
+}
+
+// // The request message containing the user's name.
+// message HelloRequest {
+//   string name = 1;
+// }
+
+// // The response message containing the greetings
+// message HelloReply {
+//   string message = 1;
+// }

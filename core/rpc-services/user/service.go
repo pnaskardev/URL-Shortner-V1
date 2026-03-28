@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	authPB "github.com/pnaskardev/URL-Shortner-V1/url-shortner-rpc/auth"
 )
@@ -17,7 +16,6 @@ func New(authClient authPB.AuthClient) *AuthService {
 	}
 }
 
-func (s *AuthService) SignIn(ctx context.Context) (*authPB.HelloReply, error) {
-	fmt.Println(&authPB.HelloRequest{Name: "PRIYANSHU"})
-	return s.authClient.SignIn(ctx, &authPB.HelloRequest{Name: "PRIYANSHU"})
+func (s *AuthService) SignIn(ctx context.Context) (*authPB.SignInResponse, error) {
+	return s.authClient.SignIn(ctx, &authPB.SignInRequest{Username: "priyanshu", Password: "testpass"})
 }
