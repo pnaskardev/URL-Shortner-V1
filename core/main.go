@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/pnaskardev/URL-Shortner-V1/core/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
+	requesthelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/requestHelper"
 )
 
 func main() {
@@ -22,6 +25,12 @@ func main() {
 	}
 
 	config := config.GetConfig()
+
+	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelDebug,
+	}))
+	slog.SetDefault(customLogger)
 
 	app := fiber.New()
 	app.Use(logger.New())
@@ -34,8 +43,19 @@ func main() {
 		return err
 	})
 
+	requestClient := &requesthelper.RetryableHTTPClient{
+		Client: &http.Client{
+			Timeout: 5 * time.Second,
+		},
+		Config: requesthelper.RetryConfig{
+			MaxRetries: 3,
+			BaseDelay:  100 * time.Millisecond,
+			MaxDelay:   2 * time.Second,
+		},
+	}
+
 	// Register all of the routes
-	routes.ApiRouter(app)
+	routes.ApiRouter(app, requestClient)
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World!")

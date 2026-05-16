@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
@@ -42,7 +43,7 @@ func LoadConfig() error {
 		viper.WatchConfig()
 
 		viper.OnConfigChange(func(e fsnotify.Event) {
-			fmt.Println("Config file changed:", e.Name)
+			slog.Info("Config file changed:", e.Name)
 			viper.Unmarshal(config)
 		})
 
