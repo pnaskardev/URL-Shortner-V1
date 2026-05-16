@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/pnaskardev/URL-Shortner-V1/core/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
-	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/container"
 )
 
 func main() {
@@ -23,8 +22,6 @@ func main() {
 	}
 
 	config := config.GetConfig()
-
-	container.InitContainer()
 
 	app := fiber.New()
 	app.Use(logger.New())
