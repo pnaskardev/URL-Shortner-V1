@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"math/rand"
@@ -59,7 +60,7 @@ func (c *RetryableHTTPClient) DoWithRetry(ctx context.Context, req *http.Request
 				"url", req.URL.String(),
 				"error", err,
 			)
-		} else if resp.StatusCode >= 500 {
+		} else if resp.StatusCode >= 400 {
 			slog.WarnContext(ctx, "HTTP request returned server error",
 				"attempt", attempt,
 				"max_retries", c.Config.MaxRetries,
@@ -67,6 +68,7 @@ func (c *RetryableHTTPClient) DoWithRetry(ctx context.Context, req *http.Request
 				"url", req.URL.String(),
 				"status_code", resp.StatusCode,
 			)
+			return nil, fmt.Errorf("REQUEST FAILED WITH - ", resp.StatusCode)
 		} else {
 			slog.InfoContext(ctx, "HTTP request succeeded",
 				"attempt", attempt,
