@@ -14,6 +14,7 @@ import (
 
 type Repository interface {
 	SignInHandler(c fiber.Ctx) error
+	SignUpHandler(c fiber.Ctx) error
 }
 
 type repository struct {
@@ -27,6 +28,38 @@ func New(requestClient requesthelper.RetryableHTTPClient) Repository {
 	return &repository{
 		requestClient: requestClient,
 	}
+}
+
+func (r *repository) SignUpHandler(c fiber.Ctx) error {
+	authPayload := new(views.AuthSignInPayload)
+
+	if err := c.Bind().Body(authPayload); err != nil {
+		return responsehelper.Badif errRequest(c)
+	}
+
+	if errs, err := corevalidator.ValidateStruct(authPayload); err != nil {
+		return responsehelper.ValidationError(c, errs)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	request, err := requesthelper.CreateHTTPRequest(ctx, "POST", "http://localhost:8001/api/auth/sign-up", &authPayload)
+	if err != nil {
+		slog.Error("SIGN IN HANDLER ERROR", "REQUEST CREATION FAILED", err)
+		return responsehelper.InternalServerError(c)
+	}
+
+	response, err := r.requestClient.DoWithRetry(ctx, request)
+	if err != nil {
+		slog.Error("SIGN IN HANDLER ERROR", "AUTH REQUEST FAILED", err)
+		return responsehelper.InternalServerError(c)
+	}
+
+	slog.Debug("SIGN IN HANDLER", "AUTH RESPONSE", response)
+
+	return c.Status(200).JSON(response)
+
 }
 
 func (r *repository) SignInHandler(c fiber.Ctx) error {
@@ -46,7 +79,7 @@ func (r *repository) SignInHandler(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	request, err := requesthelper.CreateHTTPRequest(ctx, "POST", "http://localhost:8001/sign-in", &authPayload)
+	request, err := requesthelper.CreateHTTPRequest(ctx, "POST", "http://localhost:8001/api/auth/sign-in", &authPayload)
 	if err != nil {
 		slog.Error("SIGN IN HANDLER ERROR", "REQUEST CREATION FAILED", err)
 		return responsehelper.InternalServerError(c)
