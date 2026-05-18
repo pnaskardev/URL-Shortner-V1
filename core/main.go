@@ -65,7 +65,7 @@ func main() {
 
 	go func() {
 		if err := app.Listen(port, fiber.ListenConfig{
-			EnablePrefork:     true,
+			EnablePrefork:     false,
 			EnablePrintRoutes: true,
 		}); err != nil {
 			log.Panic(err)

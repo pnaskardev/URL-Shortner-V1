@@ -34,7 +34,7 @@ func (r *repository) SignUpHandler(c fiber.Ctx) error {
 	authPayload := new(views.AuthSignInPayload)
 
 	if err := c.Bind().Body(authPayload); err != nil {
-		return responsehelper.Badif errRequest(c)
+		return responsehelper.BadRequest(c)
 	}
 
 	if errs, err := corevalidator.ValidateStruct(authPayload); err != nil {

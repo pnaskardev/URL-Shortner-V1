@@ -11,27 +11,27 @@ var postgresClient *gorm.DB = nil
 var PostgreSyncOnce sync.Once
 
 func ConnectToPostgres() *gorm.DB {
-	// https://github.com/go-gorm/postgres
-	if postgresClient != nil {
-		return postgresClient
-	}
+	PostgreSyncOnce.Do(func() {
+		db, err := gorm.Open(postgres.New(postgres.Config{
+			DSN:                  "host=localhost user=test password=test123 dbname=url-shortner port=5432 sslmode=disable TimeZone=Asia/Kolkata",
+			PreferSimpleProtocol: true,
+		}), &gorm.Config{})
 
-	PostgreSyncOnce.Do(
-		func() {
-			db, err := gorm.Open(postgres.New(postgres.Config{
-				DSN:                  "user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai",
-				PreferSimpleProtocol: true, // disables implicit prepared statement usage
-			}), &gorm.Config{})
+		if err != nil {
+			panic(err)
+		}
 
-			if err != nil {
-				panic(err)
-			}
+		sqlDB, err := db.DB()
+		if err != nil {
+			panic(err)
+		}
 
-			postgresClient = db
+		if err := sqlDB.Ping(); err != nil {
+			panic(err)
+		}
 
-		},
-	)
+		postgresClient = db
+	})
 
 	return postgresClient
-
 }
