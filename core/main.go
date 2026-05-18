@@ -32,7 +32,11 @@ func main() {
 	}))
 	slog.SetDefault(customLogger)
 
-	app := fiber.New()
+	app := fiber.New(
+		fiber.Config{
+			AppName: "CORE",
+		},
+	)
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(func(c fiber.Ctx) error {
@@ -56,10 +60,6 @@ func main() {
 
 	// Register all of the routes
 	routes.ApiRouter(app, requestClient)
-
-	app.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
 
 	port := ":" + config.Port
 

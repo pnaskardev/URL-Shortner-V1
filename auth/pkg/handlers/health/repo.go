@@ -1,21 +1,25 @@
 package health
 
 import (
-	"context"
-
-	"google.golang.org/grpc/health/grpc_health_v1"
+	"github.com/gofiber/fiber/v3"
 )
 
-type HealthHandler struct {
-	grpc_health_v1.HealthServer
+type Repository interface {
+	HealthCheck(c fiber.Ctx) error
 }
 
-func NewHealthCheckHandler() *HealthHandler {
-	return &HealthHandler{}
+type repository struct {
+
+	// If we have DB client in here
+	// All of the routes will get the DB client and no need to make multiple connections
 }
 
-func (h *HealthHandler) Check(ctx context.Context, req *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
-	return &grpc_health_v1.HealthCheckResponse{
-		Status: grpc_health_v1.HealthCheckResponse_SERVING,
-	}, nil
+func New() Repository {
+	return &repository{}
+}
+
+func (r *repository) HealthCheck(c fiber.Ctx) error {
+	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+		"status": "ok",
+	})
 }

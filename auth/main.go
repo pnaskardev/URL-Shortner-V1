@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 
+	"github.com/pnaskardev/URL-Shortner-V1/auth/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/auth/config"
 )
 
@@ -31,7 +32,11 @@ func main() {
 	}))
 	slog.SetDefault(customLogger)
 
-	app := fiber.New()
+	app := fiber.New(
+		fiber.Config{
+			AppName: "AUTH",
+		},
+	)
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(func(c fiber.Ctx) error {
@@ -42,9 +47,7 @@ func main() {
 		return err
 	})
 
-	app.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("Hello, From AUTH!")
-	})
+	routes.ApiRouter(app)
 
 	port := ":" + config.Port
 

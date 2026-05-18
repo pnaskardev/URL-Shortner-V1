@@ -1,4 +1,4 @@
-package presenters
+package views
 
 //	type SampleRequest struct {
 //		Name string `json:"name" validate:"required,min=3"`

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/presenters"
 	requesthelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/requestHelper"
 	responsehelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/responseHelper"
 	corevalidator "github.com/pnaskardev/URL-Shortner-V1/core/helpers/validator"
+	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/views"
 )
 
 type Repository interface {
@@ -30,7 +30,7 @@ func New(requestClient requesthelper.RetryableHTTPClient) Repository {
 }
 
 func (r *repository) SignInHandler(c fiber.Ctx) error {
-	authPayload := new(presenters.AuthSignInPayload)
+	authPayload := new(views.AuthSignInPayload)
 
 	if err := c.Bind().Body(authPayload); err != nil {
 		return responsehelper.BadRequest(c)
