@@ -13,7 +13,6 @@ import (
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/utils"
 	corevalidator "github.com/pnaskardev/URL-Shortner-V1/core/helpers/validator"
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/views"
-	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database"
 	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database/models"
 	"gorm.io/gorm"
 )
@@ -25,14 +24,15 @@ type Repository interface {
 
 type repository struct {
 	requestClient requesthelper.RetryableHTTPClient
-
+	dbClient      *gorm.DB
 	// If we have DB client in here
 	// All of the routes will get the DB client and no need to make multiple connections
 }
 
-func New(requestClient requesthelper.RetryableHTTPClient) Repository {
+func New(requestClient requesthelper.RetryableHTTPClient, dbClient *gorm.DB) Repository {
 	return &repository{
 		requestClient: requestClient,
+		dbClient:      dbClient,
 	}
 }
 
@@ -62,8 +62,7 @@ func (r *repository) SignUpHandler(c fiber.Ctx) error {
 		Salt:     saltStr,
 	}
 
-	dbClient := database.ConnectToPostgres()
-	err = dbClient.Create(&user).Error
+	err = r.dbClient.Create(&user).Error
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -96,8 +95,7 @@ func (r *repository) SignInHandler(c fiber.Ctx) error {
 
 	var user models.User
 
-	dbClient := database.ConnectToPostgres()
-	err := dbClient.Model(&models.User{}).Where("username = ? AND deleted = ?", authPayload.Username, false).Take(&user).Error
+	err := r.dbClient.Model(&models.User{}).Where("username = ? AND deleted = ?", authPayload.Username, false).Take(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return responsehelper.NotFound(c, "user not found")

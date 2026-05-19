@@ -27,7 +27,7 @@ func main() {
 
 	config := config.GetConfig()
 
-	_ = database.ConnectToPostgres()
+	dbClient := database.ConnectToPostgres()
 
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
@@ -62,7 +62,7 @@ func main() {
 	}
 
 	// Register all of the routes
-	routes.ApiRouter(app, requestClient)
+	routes.ApiRouter(app, requestClient, dbClient)
 
 	port := ":" + config.Port
 
