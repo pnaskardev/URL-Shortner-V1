@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -75,7 +76,7 @@ func (r *repository) SignUpHandler(c fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(201).JSON(fiber.Map{
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "user has been created please try logging in",
 	})
 
@@ -124,8 +125,20 @@ func (r *repository) SignInHandler(c fiber.Ctx) error {
 	verificationResult := utils.VerifyPassword(authPayload.Password, saltBytes, hashBytes)
 
 	if !verificationResult {
-		return c.Status(401).JSON(fiber.Map{"message": "Wrong Password/Username"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Wrong Password/Username"})
 	}
 
-	return responsehelper.InternalServerError(c)
+	accessToken, err := utils.GenerateAccessToken(user.ID.String())
+	if err != nil {
+		slog.Error("ERROR", "ERROR WHILE GENERATING ACCESS TOKEN", err)
+	}
+
+	refreshToken, err := utils.GenerateRefreshToken(user.ID.String())
+	authResponse := fiber.Map{
+		"message":      "Authentication Succesful",
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+	}
+
+	return c.Status(fiber.StatusAccepted).JSON(authResponse)
 }

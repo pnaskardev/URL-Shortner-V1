@@ -10,7 +10,9 @@ import (
 )
 
 type Config struct {
-	Port string `mapstructure:"app_port"`
+	Port          string `mapstructure:"app_port"`
+	JwtSecretKey  string `mapstructure:"app_jwtsecretkey"`
+	JwtRefreshKey string `mapstricture:"app_jwtrefreshkey"`
 }
 
 var (
