@@ -14,4 +14,5 @@ func ApiRouter(app *fiber.App, requestClient *requesthelper.RetryableHTTPClient)
 
 	authHandler := authrepository.New(*requestClient)
 	authRouter.Post("/sign-in", authHandler.SignInHandler)
+	authRouter.Post("/sign-up", authHandler.SignUpHandler)
 }

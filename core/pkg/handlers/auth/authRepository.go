@@ -2,14 +2,20 @@ package authrepository
 
 import (
 	"context"
+	"encoding/base64"
+	"errors"
 	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/jackc/pgx/v5/pgconn"
 	requesthelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/requestHelper"
 	responsehelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/responseHelper"
+	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/utils"
 	corevalidator "github.com/pnaskardev/URL-Shortner-V1/core/helpers/validator"
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/views"
+	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database"
+	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database/models"
 )
 
 type Repository interface {
@@ -41,7 +47,39 @@ func (r *repository) SignUpHandler(c fiber.Ctx) error {
 		return responsehelper.ValidationError(c, errs)
 	}
 
-	return c.SendStatus(200)
+	// Hash password
+	password, salt, err := utils.HashPassword(authPayload.Password)
+	if err != nil {
+		return responsehelper.InternalServerError(c)
+	}
+
+	hashStr := base64.StdEncoding.EncodeToString(password)
+	saltStr := base64.StdEncoding.EncodeToString(salt)
+
+	user := models.User{
+		Username: authPayload.Username,
+		Password: hashStr,
+		Salt:     saltStr,
+	}
+
+	dbClient := database.ConnectToPostgres()
+	err = dbClient.Create(&user).Error
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+
+			if pgErr.Code == "23505" {
+				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+					"message": "user already exists please use a different username",
+				})
+			}
+
+		}
+	}
+
+	return c.Status(201).JSON(fiber.Map{
+		"message": "user has been created please try logging in",
+	})
 
 }
 
