@@ -22,3 +22,9 @@ func InternalServerError(c fiber.Ctx) error {
 		"error": "Something went wrong",
 	})
 }
+
+func NotFound(c fiber.Ctx, message string) error {
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		"error": message,
+	})
+}

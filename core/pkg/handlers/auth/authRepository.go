@@ -1,11 +1,9 @@
 package authrepository
 
 import (
-	"context"
 	"encoding/base64"
 	"errors"
-	"log/slog"
-	"time"
+	"fmt"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -16,6 +14,7 @@ import (
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/views"
 	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database"
 	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database/models"
+	"gorm.io/gorm"
 )
 
 type Repository interface {
@@ -67,7 +66,6 @@ func (r *repository) SignUpHandler(c fiber.Ctx) error {
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-
 			if pgErr.Code == "23505" {
 				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 					"message": "user already exists please use a different username",
@@ -95,24 +93,39 @@ func (r *repository) SignInHandler(c fiber.Ctx) error {
 		return responsehelper.ValidationError(c, errs)
 	}
 
-	slog.Info("AUTH PAYLOAD", "AUTHPAYLOAD", authPayload)
+	var user models.User
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
-	request, err := requesthelper.CreateHTTPRequest(ctx, "POST", "http://localhost:8001/api/auth/sign-in", &authPayload)
+	dbClient := database.ConnectToPostgres()
+	err := dbClient.Model(&models.User{}).Where("username = ? AND deleted = ?", authPayload.Username, false).Take(&user).Error
 	if err != nil {
-		slog.Error("SIGN IN HANDLER ERROR", "REQUEST CREATION FAILED", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return responsehelper.NotFound(c, "user not found")
+		}
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			// real DB error (constraint, syntax, etc.)
+			fmt.Println(pgErr.Code, pgErr.Message)
+		}
+
 		return responsehelper.InternalServerError(c)
 	}
 
-	response, err := r.requestClient.DoWithRetry(ctx, request)
+	saltBytes, err := base64.StdEncoding.DecodeString(user.Salt)
 	if err != nil {
-		slog.Error("SIGN IN HANDLER ERROR", "AUTH REQUEST FAILED", err)
 		return responsehelper.InternalServerError(c)
 	}
 
-	slog.Debug("SIGN IN HANDLER", "AUTH RESPONSE", response)
+	hashBytes, err := base64.StdEncoding.DecodeString(user.Password)
+	if err != nil {
+		return responsehelper.InternalServerError(c)
+	}
 
-	return c.Status(200).JSON(response)
+	verificationResult := utils.VerifyPassword(authPayload.Password, saltBytes, hashBytes)
+
+	if !verificationResult {
+		return c.Status(401).JSON(fiber.Map{"message": "Wrong Password/Username"})
+	}
+
+	return responsehelper.InternalServerError(c)
 }
