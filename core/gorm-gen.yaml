@@ -1,0 +1,2 @@
+outPath: ./infrastructure/database/generated/query
+modelPkgPath: ./infrastructure/database/models

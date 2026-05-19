@@ -1,10 +1,11 @@
-package utils
+package database
 
 import (
 	"sync"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var postgresClient *gorm.DB = nil
@@ -20,6 +21,7 @@ func ConnectToPostgres() *gorm.DB {
 		if err != nil {
 			panic(err)
 		}
+		db.Logger = logger.Default.LogMode(logger.Info)
 
 		sqlDB, err := db.DB()
 		if err != nil {

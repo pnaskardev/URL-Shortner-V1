@@ -41,24 +41,9 @@ func (r *repository) SignUpHandler(c fiber.Ctx) error {
 		return responsehelper.ValidationError(c, errs)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
+	
 
-	request, err := requesthelper.CreateHTTPRequest(ctx, "POST", "http://localhost:8001/api/auth/sign-up", &authPayload)
-	if err != nil {
-		slog.Error("SIGN IN HANDLER ERROR", "REQUEST CREATION FAILED", err)
-		return responsehelper.InternalServerError(c)
-	}
-
-	response, err := r.requestClient.DoWithRetry(ctx, request)
-	if err != nil {
-		slog.Error("SIGN IN HANDLER ERROR", "AUTH REQUEST FAILED", err)
-		return responsehelper.InternalServerError(c)
-	}
-
-	slog.Debug("SIGN IN HANDLER", "AUTH RESPONSE", response)
-
-	return c.Status(200).JSON(response)
+	return c.SendStatus(200)
 
 }
 

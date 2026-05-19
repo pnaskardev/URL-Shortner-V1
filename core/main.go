@@ -16,6 +16,7 @@ import (
 	"github.com/pnaskardev/URL-Shortner-V1/core/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
 	requesthelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/requestHelper"
+	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database"
 )
 
 func main() {
@@ -25,6 +26,8 @@ func main() {
 	}
 
 	config := config.GetConfig()
+
+	_ = database.ConnectToPostgres()
 
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
