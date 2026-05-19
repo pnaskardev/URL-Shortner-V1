@@ -41,8 +41,6 @@ func (r *repository) SignUpHandler(c fiber.Ctx) error {
 		return responsehelper.ValidationError(c, errs)
 	}
 
-	
-
 	return c.SendStatus(200)
 
 }

@@ -3,6 +3,7 @@ package database
 import (
 	"sync"
 
+	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -22,6 +23,8 @@ func ConnectToPostgres() *gorm.DB {
 			panic(err)
 		}
 		db.Logger = logger.Default.LogMode(logger.Info)
+
+		db.AutoMigrate(&models.User{})
 
 		sqlDB, err := db.DB()
 		if err != nil {
