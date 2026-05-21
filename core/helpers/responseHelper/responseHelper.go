@@ -24,7 +24,7 @@ func InternalServerError(c fiber.Ctx) error {
 }
 
 func NotFound(c fiber.Ctx, message string) error {
-	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 		"error": message,
 	})
 }

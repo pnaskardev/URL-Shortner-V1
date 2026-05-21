@@ -138,5 +138,5 @@ func (r *repository) SignInHandler(c fiber.Ctx) error {
 		"refreshToken": refreshToken,
 	}
 
-	return c.Status(fiber.StatusAccepted).JSON(authResponse)
+	return c.Status(fiber.StatusOK).JSON(authResponse)
 }
