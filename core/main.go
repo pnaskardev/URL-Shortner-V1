@@ -15,7 +15,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/pnaskardev/URL-Shortner-V1/core/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
-	requesthelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/requestHelper"
+	"github.com/pnaskardev/URL-Shortner-V1/core/httpClients"
 	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database"
 )
 
@@ -50,11 +50,11 @@ func main() {
 		return err
 	})
 
-	requestClient := &requesthelper.RetryableHTTPClient{
+	requestClient := &httpClients.RetryableHTTPClient{
 		Client: &http.Client{
 			Timeout: 5 * time.Second,
 		},
-		Config: requesthelper.RetryConfig{
+		Config: httpClients.RetryConfig{
 			MaxRetries: 3,
 			BaseDelay:  100 * time.Millisecond,
 			MaxDelay:   2 * time.Second,

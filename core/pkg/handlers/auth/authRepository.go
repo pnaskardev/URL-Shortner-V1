@@ -8,11 +8,11 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgconn"
-	requesthelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/requestHelper"
 	responsehelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/responseHelper"
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/utils"
 	corevalidator "github.com/pnaskardev/URL-Shortner-V1/core/helpers/validator"
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/views"
+	"github.com/pnaskardev/URL-Shortner-V1/core/httpClients"
 	"github.com/pnaskardev/URL-Shortner-V1/core/infrastructure/database/models"
 	"gorm.io/gorm"
 )
@@ -23,13 +23,13 @@ type Repository interface {
 }
 
 type repository struct {
-	requestClient requesthelper.RetryableHTTPClient
+	requestClient httpClients.RetryableHTTPClient
 	dbClient      *gorm.DB
 	// If we have DB client in here
 	// All of the routes will get the DB client and no need to make multiple connections
 }
 
-func New(requestClient requesthelper.RetryableHTTPClient, dbClient *gorm.DB) Repository {
+func New(requestClient httpClients.RetryableHTTPClient, dbClient *gorm.DB) Repository {
 	return &repository{
 		requestClient: requestClient,
 		dbClient:      dbClient,
