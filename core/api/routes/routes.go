@@ -6,6 +6,7 @@ import (
 	"github.com/pnaskardev/URL-Shortner-V1/core/httpClients"
 	"github.com/pnaskardev/URL-Shortner-V1/core/middlewares"
 	authrepository "github.com/pnaskardev/URL-Shortner-V1/core/pkg/handlers/auth"
+	"github.com/pnaskardev/URL-Shortner-V1/core/pkg/handlers/shortner"
 	"gorm.io/gorm"
 )
 
@@ -23,5 +24,6 @@ func ApiRouter(app *fiber.App, requestClient *httpClients.RetryableHTTPClient, d
 	authFiberHandler := adaptor.HTTPMiddleware(middlewares.AuthMiddleware)
 
 	// THIS API SHOULD BE RATE LIMITED AND AUTHENTICATED
-	router.Post("/shorten", authFiberHandler)
+	shortenHandler := shortner.New(*requestClient, dbClient)
+	router.Post("/shorten", authFiberHandler, shortenHandler.ShortenURL)
 }
