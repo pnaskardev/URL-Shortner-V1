@@ -15,11 +15,13 @@ func ApiRouter(app *fiber.App, requestClient *httpClients.RetryableHTTPClient, d
 
 	authRouter := router.Group("/auth")
 
+	// THESE APIs should be OPEN FOR ALL but RATE LIMITED
 	authHandler := authrepository.New(*requestClient, dbClient)
 	authRouter.Post("/sign-in", authHandler.SignInHandler)
 	authRouter.Post("/sign-up", authHandler.SignUpHandler)
 
 	authFiberHandler := adaptor.HTTPMiddleware(middlewares.AuthMiddleware)
 
+	// THIS API SHOULD BE RATE LIMITED AND AUTHENTICATED
 	router.Post("/shorten", authFiberHandler)
 }
