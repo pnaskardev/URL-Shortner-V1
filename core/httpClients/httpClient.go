@@ -57,6 +57,15 @@ func (c *RetryableHTTPClient) DoWithRetry(ctx context.Context, method string, se
 		if err != nil {
 			return nil, fmt.Errorf("failed to build request: %w", err)
 		}
+
+		microserviceAuthToken, err := utils.GenerateMicroServiceAuthToken()
+		if err != nil {
+			slog.ErrorContext(ctx, "HTTP request auth failed", "error", err)
+			return nil, fmt.Errorf("HTTP request auth failed", err)
+		}
+
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", microserviceAuthToken))
+
 		if body != nil {
 			req.Header.Set("Content-Type", "application/json")
 		}

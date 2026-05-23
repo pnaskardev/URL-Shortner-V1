@@ -7,6 +7,22 @@ import (
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
 )
 
+func GenerateMicroServiceAuthToken() (string, error) {
+	configInstance := config.GetConfig()
+	secretKey := []byte(configInstance.JwtMicroServiceSecretKey)
+
+	claims := jwt.MapClaims{
+		"sub":  "core",
+		"type": "core-service",
+		"exp":  timePackage.Now().Add(2 * timePackage.Minute).Unix(),
+		"iat":  timePackage.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString(secretKey)
+}
+
 func GenerateAccessToken(userID string) (string, error) {
 	configInstance := config.GetConfig()
 	secretKey := []byte(configInstance.JwtSecretKey)
