@@ -2,7 +2,9 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/pnaskardev/URL-Shortner-V1/core/httpClients"
+	"github.com/pnaskardev/URL-Shortner-V1/core/middlewares"
 	authrepository "github.com/pnaskardev/URL-Shortner-V1/core/pkg/handlers/auth"
 	"gorm.io/gorm"
 )
@@ -17,6 +19,7 @@ func ApiRouter(app *fiber.App, requestClient *httpClients.RetryableHTTPClient, d
 	authRouter.Post("/sign-in", authHandler.SignInHandler)
 	authRouter.Post("/sign-up", authHandler.SignUpHandler)
 
-	// shortenRouter := router.Group("/shorten")
+	authFiberHandler := adaptor.HTTPMiddleware(middlewares.AuthMiddleware)
 
+	router.Post("/shorten", authFiberHandler)
 }
