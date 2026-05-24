@@ -1,6 +1,8 @@
 package shortner
 
 import (
+	"io"
+
 	"github.com/gofiber/fiber/v3"
 	responsehelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/responseHelper"
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/utils"
@@ -52,6 +54,13 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 		return responsehelper.InternalServerError(c)
 	}
 
-	return c.Status(200).JSON(response)
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return responsehelper.InternalServerError(c)
+	}
+
+	return c.Status(200).JSON(string(body))
 
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/google/uuid"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/config"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/database"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
@@ -26,7 +27,7 @@ func main() {
 
 	config := config.GetConfig()
 
-	_ = database.ConnectToPostgres()
+	dbClient := database.ConnectToPostgres()
 
 	q, err := queue.NewQueueClient()
 	if err != nil {
@@ -64,6 +65,7 @@ func main() {
 		return err
 	})
 
+	routes.ApiRouter(app, dbClient, q)
 	// requestClient := &httpClients.RetryableHTTPClient{
 	// 	Client: &http.Client{
 	// 		Timeout: 5 * time.Second,
