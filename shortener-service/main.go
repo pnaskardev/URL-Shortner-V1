@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/config"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/database"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
 )
 
 func main() {
@@ -26,6 +27,13 @@ func main() {
 	config := config.GetConfig()
 
 	_ = database.ConnectToPostgres()
+
+	q, err := queue.NewQueueClient()
+	if err != nil {
+		panic(err)
+	}
+
+	q.DeclareQueue("url_created_queue")
 
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
