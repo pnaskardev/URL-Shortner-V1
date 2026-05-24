@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strings"
 
@@ -27,14 +26,12 @@ func MicroServiceAuthMiddleware(next http.Handler) http.Handler {
 
 		token := parts[1]
 
-		_, claims, err := utils.VerifyAccessToken(token)
+		_, _, err := utils.VerifyAccessToken(token)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, "invalid or expired token", http.StatusUnauthorized)
 			return
 		}
-
-		slog.Debug("DEBUG", "CLAIMS", claims)
 
 		// userID := claims["sub"]
 

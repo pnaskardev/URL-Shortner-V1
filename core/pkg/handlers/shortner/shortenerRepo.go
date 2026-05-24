@@ -9,6 +9,7 @@ import (
 	corevalidator "github.com/pnaskardev/URL-Shortner-V1/core/helpers/validator"
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/views"
 	"github.com/pnaskardev/URL-Shortner-V1/core/httpClients"
+	"github.com/pnaskardev/URL-Shortner-V1/core/middlewares"
 	"gorm.io/gorm"
 )
 
@@ -34,6 +35,8 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 
 	shortenPayload := new(views.ShortenRequest)
 
+	userID := c.RequestCtx().UserValue(middlewares.UserIDKey).(string)
+
 	if err := c.Bind().Body(shortenPayload); err != nil {
 		return responsehelper.BadRequest(c)
 	}
@@ -42,11 +45,16 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 		return responsehelper.ValidationError(c, errs)
 	}
 
+	shortenMicroServicePayload := map[string]string{
+		"url":     shortenPayload.Url,
+		"user_id": userID,
+	}
+
 	doWithRetryPayload := httpClients.DoWithRetryRequest{
 		Ctx:     c,
 		Method:  "POST",
 		Service: utils.SHORTENER_SERVICE,
-		Payload: shortenPayload,
+		Payload: shortenMicroServicePayload,
 	}
 
 	response, err := r.requestClient.DoWithRetry(doWithRetryPayload)
