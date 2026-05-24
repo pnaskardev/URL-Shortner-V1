@@ -30,7 +30,7 @@ func GenerateAccessToken(userID string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":  userID,
 		"type": "access",
-		"exp":  timePackage.Now().Add(15 * timePackage.Minute).Unix(),
+		"exp":  timePackage.Now().Add(24 * timePackage.Hour).Unix(),
 		"iat":  timePackage.Now().Unix(),
 	}
 

@@ -2,7 +2,10 @@ package shortner
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/log"
+	responsehelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/responseHelper"
+	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/utils"
+	corevalidator "github.com/pnaskardev/URL-Shortner-V1/core/helpers/validator"
+	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/views"
 	"github.com/pnaskardev/URL-Shortner-V1/core/httpClients"
 	"gorm.io/gorm"
 )
@@ -27,6 +30,28 @@ func New(requestClient httpClients.RetryableHTTPClient, dbClient *gorm.DB) Repos
 
 func (r *repository) ShortenURL(c fiber.Ctx) error {
 
-	log.Debug("SHORTEN URL BODY", string(c.Body()))
-	return nil
+	shortenPayload := new(views.ShortenRequest)
+
+	if err := c.Bind().Body(shortenPayload); err != nil {
+		return responsehelper.BadRequest(c)
+	}
+
+	if errs, err := corevalidator.ValidateStruct(shortenPayload); err != nil {
+		return responsehelper.ValidationError(c, errs)
+	}
+
+	doWithRetryPayload := httpClients.DoWithRetryRequest{
+		Ctx:     c,
+		Method:  "POST",
+		Service: utils.SHORTENER_SERVICE,
+		Payload: shortenPayload,
+	}
+
+	response, err := r.requestClient.DoWithRetry(doWithRetryPayload)
+	if err != nil {
+		return responsehelper.InternalServerError(c)
+	}
+
+	return c.Status(200).JSON(response)
+
 }

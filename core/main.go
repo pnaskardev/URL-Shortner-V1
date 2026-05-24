@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/google/uuid"
 	"github.com/pnaskardev/URL-Shortner-V1/core/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/core/config"
 	"github.com/pnaskardev/URL-Shortner-V1/core/httpClients"
@@ -43,6 +44,14 @@ func main() {
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(func(c fiber.Ctx) error {
+
+		txID := c.Get("X-Transaction-ID")
+		if txID == "" {
+			txID = uuid.NewString()
+		}
+		c.Locals("transaction_id", txID)
+		c.Set("X-Transaction-ID", txID)
+
 		start := time.Now()
 		err := c.Next()
 		duration := time.Since(start)
