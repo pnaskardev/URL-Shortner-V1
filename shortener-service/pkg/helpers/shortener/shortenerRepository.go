@@ -30,5 +30,10 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 
 	slog.Debug("DEBUG", "SHORTEN URL BODY", string(c.Body()))
 
+	r.queueClient.Publish(
+		"url_created_queue",
+		c.Body(),
+	)
+
 	return c.SendStatus(fiber.StatusOK)
 }
