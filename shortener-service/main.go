@@ -34,7 +34,11 @@ func main() {
 		panic(err)
 	}
 
-	q.DeclareQueue("url_created_queue")
+	err = q.DeclareQueue()
+	if err != nil {
+		slog.Error("RABBIT MQ ERROR", "ERROR", err)
+		panic(err)
+	}
 
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
@@ -99,10 +103,10 @@ func main() {
 	_ = app.Shutdown()
 
 	fmt.Println("Running cleanup tasks...")
-
 	// Your cleanup tasks go here
 	// db.Close()
 	// redisConn.Close()
+	q.Close()
 	fmt.Println("Fiber was successful shutdown.")
 
 }

@@ -1,9 +1,12 @@
 package shortener
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/constants"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
 	"gorm.io/gorm"
 )
@@ -30,10 +33,17 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 
 	slog.Debug("DEBUG", "SHORTEN URL BODY", string(c.Body()))
 
-	r.queueClient.Publish(
-		"url_created_queue",
+	err := r.queueClient.Publish(
+		context.TODO(),
+		constants.URL_CREATED_QUEUE,
 		c.Body(),
 	)
+
+	if err != nil {
+
+		fmt.Println(err)
+		panic(err)
+	}
 
 	return c.SendStatus(fiber.StatusOK)
 }
