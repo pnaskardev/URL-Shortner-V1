@@ -2,6 +2,7 @@ package shortener
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"time"
 
@@ -54,10 +55,16 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
-	err := r.queueClient.Publish(
+
+	bodyBytes, err := json.Marshal(shortenedQueueBody)
+	if err != nil {
+		return err
+	}
+
+	err = r.queueClient.Publish(
 		ctx,
 		constants.URL_CREATED_QUEUE,
-		shortenedQueueBody,
+		bodyBytes,
 	)
 
 	if err != nil {
