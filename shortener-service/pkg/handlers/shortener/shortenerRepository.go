@@ -2,11 +2,16 @@ package shortener
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
+
+	"github.com/pnaskardev/URL-Shortner-V1/core/middlewares"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/constants"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/utils"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/views"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
 	"gorm.io/gorm"
 )
@@ -31,17 +36,33 @@ func New(dbClient *gorm.DB, queueClient *queue.QueueClient) Repository {
 
 func (r *repository) ShortenURL(c fiber.Ctx) error {
 
-	slog.Debug("DEBUG", "SHORTEN URL BODY", string(c.Body()))
+	shortenPayload := new(views.ShortenRequest)
 
+	userID := c.RequestCtx().UserValue(middlewares.UserIDKey).(string)
+
+	if err := c.Bind().Body(shortenPayload); err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	shortenedURL := utils.EncodeToBase62([]byte(shortenPayload.Url))
+
+	shortenedQueueBody := views.ShortenerQueueBody{
+		ID:              uuid.New(),
+		UserID:          userID,
+		ShortenedURLKey: shortenedURL,
+		LongURL:         shortenPayload.Url,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
 	err := r.queueClient.Publish(
-		context.TODO(),
+		ctx,
 		constants.URL_CREATED_QUEUE,
-		c.Body(),
+		shortenedQueueBody,
 	)
 
 	if err != nil {
 
-		fmt.Println(err)
+		slog.Error("ERROR", "PUBLISH ERROR", err)
 		panic(err)
 	}
 

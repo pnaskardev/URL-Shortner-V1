@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/middlewares"
-	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/pkg/helpers/shortener"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/pkg/handlers/shortener"
 	"gorm.io/gorm"
 )
 
