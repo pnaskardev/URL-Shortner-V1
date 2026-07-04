@@ -14,3 +14,13 @@ message InternalShortenRequest {
   string url = 1;
   string user_id = 2;
 }
+
+// ShortenResponse is returned to the caller once the shortening request has been
+// accepted. The key is computed synchronously and is deterministic, so it can be
+// returned immediately even though persistence happens asynchronously via the
+// url.created queue. id correlates the response with the emitted UrlCreatedEvent.
+message ShortenResponse {
+  string id = 1;
+  string shortened_url_key = 2;
+  string long_url = 3;
+}

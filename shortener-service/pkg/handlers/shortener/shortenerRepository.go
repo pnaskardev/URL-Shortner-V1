@@ -69,10 +69,21 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 	)
 
 	if err != nil {
-
-		slog.Error("ERROR", "PUBLISH ERROR", err)
-		panic(err)
+		slog.Error("failed to publish url.created event", "error", err)
+		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	return c.SendStatus(fiber.StatusOK)
+	response := &urlshortenerv1.ShortenResponse{
+		Id:              event.GetId(),
+		ShortenedUrlKey: shortenedURL,
+		LongUrl:         shortenPayload.GetUrl(),
+	}
+
+	responseBody, err := protojson.Marshal(response)
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	return c.Status(fiber.StatusAccepted).Send(responseBody)
 }

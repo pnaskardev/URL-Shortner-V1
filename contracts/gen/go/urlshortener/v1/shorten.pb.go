@@ -121,6 +121,70 @@ func (x *InternalShortenRequest) GetUserId() string {
 	return ""
 }
 
+// ShortenResponse is returned to the caller once the shortening request has been
+// accepted. The key is computed synchronously and is deterministic, so it can be
+// returned immediately even though persistence happens asynchronously via the
+// url.created queue. id correlates the response with the emitted UrlCreatedEvent.
+type ShortenResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ShortenedUrlKey string                 `protobuf:"bytes,2,opt,name=shortened_url_key,json=shortenedUrlKey,proto3" json:"shortened_url_key,omitempty"`
+	LongUrl         string                 `protobuf:"bytes,3,opt,name=long_url,json=longUrl,proto3" json:"long_url,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ShortenResponse) Reset() {
+	*x = ShortenResponse{}
+	mi := &file_urlshortener_v1_shorten_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShortenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShortenResponse) ProtoMessage() {}
+
+func (x *ShortenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_urlshortener_v1_shorten_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShortenResponse.ProtoReflect.Descriptor instead.
+func (*ShortenResponse) Descriptor() ([]byte, []int) {
+	return file_urlshortener_v1_shorten_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ShortenResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ShortenResponse) GetShortenedUrlKey() string {
+	if x != nil {
+		return x.ShortenedUrlKey
+	}
+	return ""
+}
+
+func (x *ShortenResponse) GetLongUrl() string {
+	if x != nil {
+		return x.LongUrl
+	}
+	return ""
+}
+
 var File_urlshortener_v1_shorten_proto protoreflect.FileDescriptor
 
 const file_urlshortener_v1_shorten_proto_rawDesc = "" +
@@ -130,7 +194,11 @@ const file_urlshortener_v1_shorten_proto_rawDesc = "" +
 	"\x03url\x18\x01 \x01(\tR\x03url\"C\n" +
 	"\x16InternalShortenRequest\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userIdB\xd7\x01\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"h\n" +
+	"\x0fShortenResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
+	"\x11shortened_url_key\x18\x02 \x01(\tR\x0fshortenedUrlKey\x12\x19\n" +
+	"\blong_url\x18\x03 \x01(\tR\alongUrlB\xd7\x01\n" +
 	"\x13com.urlshortener.v1B\fShortenProtoP\x01ZUgithub.com/pnaskardev/URL-Shortner-V1/contracts/gen/go/urlshortener/v1;urlshortenerv1\xa2\x02\x03UXX\xaa\x02\x0fUrlshortener.V1\xca\x02\x0fUrlshortener\\V1\xe2\x02\x1bUrlshortener\\V1\\GPBMetadata\xea\x02\x10Urlshortener::V1b\x06proto3"
 
 var (
@@ -145,10 +213,11 @@ func file_urlshortener_v1_shorten_proto_rawDescGZIP() []byte {
 	return file_urlshortener_v1_shorten_proto_rawDescData
 }
 
-var file_urlshortener_v1_shorten_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_urlshortener_v1_shorten_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_urlshortener_v1_shorten_proto_goTypes = []any{
 	(*ShortenRequest)(nil),         // 0: urlshortener.v1.ShortenRequest
 	(*InternalShortenRequest)(nil), // 1: urlshortener.v1.InternalShortenRequest
+	(*ShortenResponse)(nil),        // 2: urlshortener.v1.ShortenResponse
 }
 var file_urlshortener_v1_shorten_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -169,7 +238,7 @@ func file_urlshortener_v1_shorten_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urlshortener_v1_shorten_proto_rawDesc), len(file_urlshortener_v1_shorten_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

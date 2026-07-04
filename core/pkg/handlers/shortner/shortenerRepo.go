@@ -77,6 +77,7 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 		return responsehelper.InternalServerError(c)
 	}
 
-	return c.Status(200).JSON(string(body))
+	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	return c.Status(response.StatusCode).Send(body)
 
 }
