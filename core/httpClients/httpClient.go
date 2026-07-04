@@ -36,13 +36,19 @@ func (c *RetryableHTTPClient) DoWithRetry(target DoWithRetryRequest) (*http.Resp
 
 	url := utils.GlobalConstants[utils.SERVICES(target.Service)]
 
-	// Serialize payload once before the loop to avoid re-marshaling on each retry
+	// Serialize payload once before the loop to avoid re-marshaling on each retry.
+	// A []byte payload is treated as an already-serialized body (e.g. protojson
+	// output) and passed through untouched, since json.Marshal would corrupt it.
 	var bodyBytes []byte
 	if target.Payload != nil {
-		var err error
-		bodyBytes, err = json.Marshal(target.Payload)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal payload: %w", err)
+		if raw, ok := target.Payload.([]byte); ok {
+			bodyBytes = raw
+		} else {
+			var err error
+			bodyBytes, err = json.Marshal(target.Payload)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal payload: %w", err)
+			}
 		}
 	}
 
@@ -68,7 +74,7 @@ func (c *RetryableHTTPClient) DoWithRetry(target DoWithRetryRequest) (*http.Resp
 		microserviceAuthToken, err := utils.GenerateMicroServiceAuthToken()
 		if err != nil {
 			slog.ErrorContext(target.Ctx, "HTTP request auth failed", "error", err)
-			return nil, fmt.Errorf("HTTP request auth failed", err)
+			return nil, fmt.Errorf("HTTP request auth failed: %w", err)
 		}
 
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", microserviceAuthToken))

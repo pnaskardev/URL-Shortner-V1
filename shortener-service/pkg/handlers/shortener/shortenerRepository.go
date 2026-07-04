@@ -2,17 +2,18 @@ package shortener
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 
+	urlshortenerv1 "github.com/pnaskardev/URL-Shortner-V1/contracts/gen/go/urlshortener/v1"
 	"github.com/pnaskardev/URL-Shortner-V1/core/middlewares"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/constants"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/utils"
-	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/views"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
 	"gorm.io/gorm"
 )
@@ -37,26 +38,26 @@ func New(dbClient *gorm.DB, queueClient *queue.QueueClient) Repository {
 
 func (r *repository) ShortenURL(c fiber.Ctx) error {
 
-	shortenPayload := new(views.ShortenRequest)
+	shortenPayload := new(urlshortenerv1.InternalShortenRequest)
 
 	userID := c.RequestCtx().UserValue(middlewares.UserIDKey).(string)
 
-	if err := c.Bind().Body(shortenPayload); err != nil {
+	if err := protojson.Unmarshal(c.Body(), shortenPayload); err != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
-	shortenedURL := utils.EncodeToBase62([]byte(shortenPayload.Url))
+	shortenedURL := utils.EncodeToBase62([]byte(shortenPayload.GetUrl()))
 
-	shortenedQueueBody := views.ShortenerQueueBody{
-		ID:              uuid.New(),
-		UserID:          userID,
-		ShortenedURLKey: shortenedURL,
-		LongURL:         shortenPayload.Url,
+	event := &urlshortenerv1.UrlCreatedEvent{
+		Id:              uuid.New().String(),
+		UserId:          userID,
+		ShortenedUrlKey: shortenedURL,
+		LongUrl:         shortenPayload.GetUrl(),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 
-	bodyBytes, err := json.Marshal(shortenedQueueBody)
+	bodyBytes, err := proto.Marshal(event)
 	if err != nil {
 		return err
 	}

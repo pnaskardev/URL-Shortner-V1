@@ -20,8 +20,9 @@ profile.cov
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
-go.work
+# Go workspace file is committed intentionally: it is the single source of
+# module resolution for this monorepo (core, shortener-service, contracts).
+# go.work.sum stays ignored (it is a local checksum cache).
 go.work.sum
 
 */tmp/*

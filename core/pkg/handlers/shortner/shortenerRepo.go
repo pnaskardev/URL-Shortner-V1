@@ -4,6 +4,9 @@ import (
 	"io"
 
 	"github.com/gofiber/fiber/v3"
+	"google.golang.org/protobuf/encoding/protojson"
+
+	urlshortenerv1 "github.com/pnaskardev/URL-Shortner-V1/contracts/gen/go/urlshortener/v1"
 	responsehelper "github.com/pnaskardev/URL-Shortner-V1/core/helpers/responseHelper"
 	"github.com/pnaskardev/URL-Shortner-V1/core/helpers/utils"
 	corevalidator "github.com/pnaskardev/URL-Shortner-V1/core/helpers/validator"
@@ -45,16 +48,21 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 		return responsehelper.ValidationError(c, errs)
 	}
 
-	shortenMicroServicePayload := map[string]string{
-		"url":     shortenPayload.Url,
-		"user_id": userID,
+	internalRequest := &urlshortenerv1.InternalShortenRequest{
+		Url:    shortenPayload.Url,
+		UserId: userID,
+	}
+
+	internalRequestBody, err := protojson.Marshal(internalRequest)
+	if err != nil {
+		return responsehelper.InternalServerError(c)
 	}
 
 	doWithRetryPayload := httpClients.DoWithRetryRequest{
 		Ctx:     c,
 		Method:  "POST",
 		Service: utils.SHORTENER_SERVICE,
-		Payload: shortenMicroServicePayload,
+		Payload: internalRequestBody,
 	}
 
 	response, err := r.requestClient.DoWithRetry(doWithRetryPayload)

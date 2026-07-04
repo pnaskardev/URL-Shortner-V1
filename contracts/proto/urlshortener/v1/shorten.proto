@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package urlshortener.v1;
+
+// ShortenRequest is the public request body accepted by the core API gateway.
+message ShortenRequest {
+  string url = 1;
+}
+
+// InternalShortenRequest is the body core forwards to shortener-service over
+// the internal HTTP hop. It carries the authenticated user_id resolved from the
+// JWT, since the downstream service trusts core to have authenticated.
+message InternalShortenRequest {
+  string url = 1;
+  string user_id = 2;
+}

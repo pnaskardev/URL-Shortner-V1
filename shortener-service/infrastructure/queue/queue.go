@@ -155,7 +155,7 @@ func (c *QueueClient) Publish(ctx context.Context, queueName string, body []byte
 		queueName,
 		false, false,
 		amqp.Publishing{
-			ContentType:  "application/json",
+			ContentType:  "application/x-protobuf",
 			Body:         body,
 			DeliveryMode: amqp.Persistent,
 		},

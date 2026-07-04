@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package urlshortener.v1;
+
+// UrlCreatedEvent is published to the RabbitMQ "url.created" queue when a URL is
+// shortened. It is the single source of truth for that event across producer and
+// consumer. id is the canonical text form of a UUID (proto has no UUID scalar).
+message UrlCreatedEvent {
+  string id = 1;
+  string user_id = 2;
+  string shortened_url_key = 3;
+  string long_url = 4;
+}

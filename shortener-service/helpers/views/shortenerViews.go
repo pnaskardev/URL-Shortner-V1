@@ -5,13 +5,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type ShortenerQueueBody struct {
-	ID              uuid.UUID `json:"id"`
-	UserID          string    `json:"user_id"`
-	ShortenedURLKey string    `json:"shortened_url_key"`
-	LongURL         string    `json:"long_url"`
-}
-
+// ShortURLDB is the persistence model for a shortened URL. It stays hand-written
+// (not generated from proto) because it carries GORM embedding and column tags.
+// The wire contract lives in the contracts module as urlshortenerv1.UrlCreatedEvent.
 type ShortURLDB struct {
 	gorm.Model
 	ID              uuid.UUID `gorm:"type:uuid;primaryKey"`
@@ -21,8 +17,4 @@ type ShortURLDB struct {
 	Deleted         bool      `gorm:"default:false;not null"`
 	CreatedAt       int64     `gorm:"autoCreateTime:milli"`
 	UpdatedAt       int64     `gorm:"autoUpdateTime:milli"`
-}
-
-type ShortenRequest struct {
-	Url string `json:"url" validate:"url"`
 }
