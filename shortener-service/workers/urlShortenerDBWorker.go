@@ -86,7 +86,7 @@ func (r *repository) runStartShortenerService() error {
 			// // or, more readable:
 			// // b, _ := protojson.Marshal(event); fmt.Println(string(b))
 
-			shortenedURL := models.URLsDB{
+			shortenedURL := models.URLs{
 				ShortURLKey: event.GetShortenedUrlKey(),
 				LongURL:     event.GetLongUrl(),
 				UserID:      event.GetUserId(),
