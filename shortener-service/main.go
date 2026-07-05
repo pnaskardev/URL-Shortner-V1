@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
@@ -17,6 +18,7 @@ import (
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/config"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/database"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/workers"
 )
 
 func main() {
@@ -39,6 +41,9 @@ func main() {
 		slog.Error("RABBIT MQ ERROR", "ERROR", err)
 		panic(err)
 	}
+
+	shortenerIngestor := workers.NewShortenerIngestor(context.Background(), dbClient, q)
+	shortenerIngestor.StartShortenerService()
 
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,

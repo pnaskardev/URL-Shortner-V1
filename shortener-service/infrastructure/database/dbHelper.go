@@ -3,6 +3,7 @@ package database
 import (
 	"sync"
 
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -29,6 +30,10 @@ func ConnectToPostgres() *gorm.DB {
 		}
 
 		if err := sqlDB.Ping(); err != nil {
+			panic(err)
+		}
+
+		if err := db.AutoMigrate(&models.ProcessedEvents{}, &models.ShortenedURL{}); err != nil {
 			panic(err)
 		}
 

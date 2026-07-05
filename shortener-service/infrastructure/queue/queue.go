@@ -185,6 +185,24 @@ func (c *QueueClient) Publish(ctx context.Context, queueName string, body []byte
 	}
 }
 
+func (c *QueueClient) Consume(queuename string) (<-chan amqp.Delivery, error) {
+	msgs, err := c.channel.Consume(
+		queuename, "",
+		false, // auto-ack
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
+		nil,   // args
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return msgs, nil
+
+}
+
 func (c *QueueClient) Close() {
 	if c.channel != nil {
 		_ = c.channel.Close()
