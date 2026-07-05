@@ -13,7 +13,10 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/google/uuid"
+	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/config"
+	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/infrastructure/cache"
+	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/infrastructure/database"
 )
 
 func main() {
@@ -24,6 +27,12 @@ func main() {
 	}
 
 	config := config.GetConfig()
+
+	// Create DB Client
+	dbClient := database.ConnectToPostgres()
+
+	// Create Redis Connection
+	cache.NewRedisClient()
 
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
@@ -53,6 +62,8 @@ func main() {
 		c.Append("Server-Timing", "app;dur="+duration.String())
 		return err
 	})
+
+	routes.ApiRouter(app, dbClient)
 
 	port := ":" + config.Port
 

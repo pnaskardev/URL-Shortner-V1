@@ -78,19 +78,6 @@ func main() {
 	})
 
 	routes.ApiRouter(app, dbClient, q)
-	// requestClient := &httpClients.RetryableHTTPClient{
-	// 	Client: &http.Client{
-	// 		Timeout: 5 * time.Second,
-	// 	},
-	// 	Config: httpClients.RetryConfig{
-	// 		MaxRetries: 3,
-	// 		BaseDelay:  100 * time.Millisecond,
-	// 		MaxDelay:   2 * time.Second,
-	// 	},
-	// }
-
-	// Register all of the routes
-	// routes.ApiRouter(app, requestClient, dbClient)
 
 	port := ":" + config.Port
 
