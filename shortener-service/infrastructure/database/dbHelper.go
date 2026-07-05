@@ -33,7 +33,7 @@ func ConnectToPostgres() *gorm.DB {
 			panic(err)
 		}
 
-		if err := db.AutoMigrate(&models.ProcessedEvents{}, &models.ShortenedURL{}); err != nil {
+		if err := db.AutoMigrate(&models.ProcessedEvents{}, &models.URLsDB{}); err != nil {
 			panic(err)
 		}
 

@@ -86,10 +86,12 @@ func (r *repository) runStartShortenerService() error {
 			// // or, more readable:
 			// // b, _ := protojson.Marshal(event); fmt.Println(string(b))
 
-			shortenedURL := models.ShortenedURL{
+			shortenedURL := models.URLsDB{
 				ShortURLKey: event.GetShortenedUrlKey(),
 				LongURL:     event.GetLongUrl(),
 				UserID:      event.GetUserId(),
+				IsActive:    true,
+				ExpiresAt:   time.Now().Add(constants.UrlTTlConstant).UnixMilli(),
 			}
 
 			err := r.dbClient.Transaction(func(tx *gorm.DB) error {
