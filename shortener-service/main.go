@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/api/routes"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/config"
+	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/utils"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/database"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/workers"
@@ -26,6 +27,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	utils.CreateSnowFlakeInstance()
 
 	config := config.GetConfig()
 

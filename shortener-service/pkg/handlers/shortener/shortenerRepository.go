@@ -3,6 +3,7 @@ package shortener
 import (
 	"context"
 	"log/slog"
+	"math/big"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -50,12 +51,16 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 	if userID == "" {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
-	shortenedURL := utils.EncodeToBase62([]byte(shortenPayload.GetUrl()))
+	id, err := utils.NewSnowflakeID()
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	shortenedURLKey := utils.EncodeToBase62(new(big.Int).SetInt64(id).Bytes())
 
 	event := &urlshortenerv1.UrlCreatedEvent{
 		Id:              uuid.New().String(),
 		UserId:          userID,
-		ShortenedUrlKey: shortenedURL,
+		ShortenedUrlKey: shortenedURLKey,
 		LongUrl:         shortenPayload.GetUrl(),
 	}
 
@@ -80,7 +85,7 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 
 	response := &urlshortenerv1.ShortenResponse{
 		Id:              event.GetId(),
-		ShortenedUrlKey: shortenedURL,
+		ShortenedUrlKey: shortenedURLKey,
 		LongUrl:         shortenPayload.GetUrl(),
 	}
 
