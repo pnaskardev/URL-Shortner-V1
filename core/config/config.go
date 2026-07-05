@@ -13,7 +13,7 @@ type Config struct {
 	Port                     string `mapstructure:"app_port"`
 	JwtMicroServiceSecretKey string `mapstructure:"app_jwtmicroservicesecretkey"`
 	JwtSecretKey             string `mapstructure:"app_jwtsecretkey"`
-	JwtRefreshKey            string `mapstricture:"app_jwtrefreshkey"`
+	JwtRefreshKey            string `mapstructure:"app_jwtrefreshkey"`
 }
 
 var (
@@ -22,39 +22,39 @@ var (
 )
 
 func LoadConfig() error {
+	var loadErr error
+
 	configOnce.Do(func() {
-		viper := viper.New()
+		v := viper.New()
 
-		// Name of the config file without an extension (Viper will intuit the type
-		// from an extension on the actual file)
-		// viper.SetConfigName("config")
-		viper.SetConfigType("env")
+		v.SetConfigType("env")
+		v.AddConfigPath(".")
+		// Read environment variables prefixed with APP_.
+		v.SetEnvPrefix("APP")
+		v.AutomaticEnv()
 
-		viper.AddConfigPath(".")
-		// Tells Viper to use this prefix when reading environment variables
-		viper.SetEnvPrefix("APP")
-		// Alternatively, we can search for any environment variable prefixed and load
-		// them in
-		viper.AutomaticEnv()
-
-		// Find and read the config file
-		err := viper.ReadInConfig()
-		if err != nil {
-			panic(fmt.Errorf("fatal error config file: %w", err))
+		if err := v.ReadInConfig(); err != nil {
+			loadErr = fmt.Errorf("read config file: %w", err)
+			return
 		}
-		fmt.Println("Using config:", viper.ConfigFileUsed())
-		viper.WatchConfig()
-
-		viper.OnConfigChange(func(e fsnotify.Event) {
-			slog.Info("Config file changed:", e.Name)
-			viper.Unmarshal(config)
-		})
+		fmt.Println("Using config:", v.ConfigFileUsed())
 
 		config = &Config{}
-		err = viper.Unmarshal(config)
+		if err := v.Unmarshal(config); err != nil {
+			loadErr = fmt.Errorf("unmarshal config: %w", err)
+			return
+		}
+
+		v.WatchConfig()
+		v.OnConfigChange(func(e fsnotify.Event) {
+			slog.Info("config file changed", "file", e.Name)
+			if err := v.Unmarshal(config); err != nil {
+				slog.Error("failed to reload config", "error", err)
+			}
+		})
 	})
 
-	return nil
+	return loadErr
 }
 
 func GetConfig() *Config {

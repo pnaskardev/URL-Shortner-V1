@@ -11,7 +11,6 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	urlshortenerv1 "github.com/pnaskardev/URL-Shortner-V1/contracts/gen/go/urlshortener/v1"
-	"github.com/pnaskardev/URL-Shortner-V1/core/middlewares"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/constants"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/utils"
 	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/infrastructure/queue"
@@ -40,9 +39,15 @@ func (r *repository) ShortenURL(c fiber.Ctx) error {
 
 	shortenPayload := new(urlshortenerv1.InternalShortenRequest)
 
-	userID := c.RequestCtx().UserValue(middlewares.UserIDKey).(string)
-
 	if err := protojson.Unmarshal(c.Body(), shortenPayload); err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	// UserId is carried in the InternalShortenRequest contract, set by core after
+	// it authenticates the caller. Reading it from the body keeps this service from
+	// depending on core's internal packages.
+	userID := shortenPayload.GetUserId()
+	if userID == "" {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 	shortenedURL := utils.EncodeToBase62([]byte(shortenPayload.GetUrl()))
