@@ -17,6 +17,7 @@ import (
 	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/config"
 	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/infrastructure/cache"
 	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/infrastructure/database"
+	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/infrastructure/queue"
 )
 
 func main() {
@@ -33,6 +34,12 @@ func main() {
 
 	// Create Redis Connection
 	cache.NewRedisClient()
+
+	// Create Queue Connection
+	queueClient, err := queue.NewQueueClient()
+	if err != nil {
+		panic(err)
+	}
 
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
@@ -63,7 +70,7 @@ func main() {
 		return err
 	})
 
-	routes.ApiRouter(app, dbClient)
+	routes.ApiRouter(app, queueClient, dbClient)
 
 	port := ":" + config.Port
 

@@ -11,3 +11,15 @@ message UrlCreatedEvent {
   string shortened_url_key = 3;
   string long_url = 4;
 }
+
+// UrlRedirectedEvent is published to "url.analytics" on every successful
+// redirect. Fire-and-forget: lossy by design. `id` is a per-click UUID so the
+// analytics consumer can dedupe under at-least-once delivery.
+message UrlRedirectedEvent {
+  int64 id = 1;                 // unique per click, generated at redirect time
+  string shortened_url_key = 2;  // the join/aggregation dimension
+  int64  occurred_at_ms = 3;     // when the click happened (event time, not consume time)
+  string ip_address = 4;
+  string user_agent = 5;
+  string referrer = 6;
+}

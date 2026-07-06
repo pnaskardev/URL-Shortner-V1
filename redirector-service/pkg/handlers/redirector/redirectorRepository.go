@@ -3,11 +3,17 @@ package redirector
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	urlshortenerv1 "github.com/pnaskardev/URL-Shortner-V1/contracts/gen/go/urlshortener/v1"
+	constants "github.com/pnaskardev/URL-Shortner-V1/redirector-service/helpers"
+	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/helpers/utils"
+	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/infrastructure/queue"
 	"github.com/pnaskardev/URL-Shortner-V1/redirector-service/pkg/models"
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm"
 )
 
@@ -20,14 +26,16 @@ type Repository interface {
 type repository struct {
 	dbClient    *gorm.DB
 	cacheClient *redis.Client
+	queueClient *queue.QueueClient
 	// If we have DB client in here
 	// All of the routes will get the DB client and no need to make multiple connections
 }
 
-func New(dbClient *gorm.DB, cacheClient *redis.Client) Repository {
+func New(dbClient *gorm.DB, queueClient *queue.QueueClient, cacheClient *redis.Client) Repository {
 	return &repository{
 		dbClient:    dbClient,
 		cacheClient: cacheClient,
+		queueClient: queueClient,
 	}
 }
 
@@ -71,6 +79,46 @@ func (r repository) RedirectURL(c fiber.Ctx) error {
 
 	// Warm the cache so the next read is a hit.
 	r.cacheClient.Set(ctx, shortenedKey, fetchedURL.LongURL, cacheTTL)
+
+	// Capture click context BEFORE the goroutine — fiber.Ctx is pooled and
+	// reused for the next request once this handler returns.
+	occurredAtMs := time.Now().UnixMilli()
+	ipAddress := c.IP()
+	userAgent := c.Get("User-Agent")
+	referrer := c.Get("Referer")
+
+	// Push the click to the analytics pipeline. Fire-and-forget: lossy by design,
+	// must not add latency or failure to the redirect.
+	go func() {
+
+		publishCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		snowFlakeID, err := utils.NewSnowflakeID()
+		if err != nil {
+			slog.Error("ID GENERATION ERROR ANALYTICS EVENT", "ERROR", err)
+			return
+		}
+		analyticEvent := urlshortenerv1.UrlRedirectedEvent{
+			Id:              snowFlakeID,
+			ShortenedUrlKey: shortenedKey,
+			OccurredAtMs:    occurredAtMs,
+			IpAddress:       ipAddress,
+			UserAgent:       userAgent,
+			Referrer:        referrer,
+		}
+
+		body, err := proto.Marshal(&analyticEvent)
+		if err != nil {
+			slog.Error("MARSHAL ERROR ANALYTICS EVENT", "ERROR", err)
+			return
+		}
+
+		if err := r.queueClient.Publish(publishCtx, constants.URL_ANALYTICS_EVENT_QUEUE, body); err != nil {
+			slog.Error("PUBLISH ANALYTICS EVENT", "KEY", shortenedKey, "ERROR", err)
+		}
+
+	}()
 
 	return c.Redirect().Status(fiber.StatusFound).To(fetchedURL.LongURL)
 }

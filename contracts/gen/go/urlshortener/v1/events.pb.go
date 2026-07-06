@@ -92,6 +92,93 @@ func (x *UrlCreatedEvent) GetLongUrl() string {
 	return ""
 }
 
+// UrlRedirectedEvent is published to "url.analytics" on every successful
+// redirect. Fire-and-forget: lossy by design. `id` is a per-click UUID so the
+// analytics consumer can dedupe under at-least-once delivery.
+type UrlRedirectedEvent struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                                   // unique per click, generated at redirect time
+	ShortenedUrlKey string                 `protobuf:"bytes,2,opt,name=shortened_url_key,json=shortenedUrlKey,proto3" json:"shortened_url_key,omitempty"` // the join/aggregation dimension
+	OccurredAtMs    int64                  `protobuf:"varint,3,opt,name=occurred_at_ms,json=occurredAtMs,proto3" json:"occurred_at_ms,omitempty"`         // when the click happened (event time, not consume time)
+	IpAddress       string                 `protobuf:"bytes,4,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
+	UserAgent       string                 `protobuf:"bytes,5,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	Referrer        string                 `protobuf:"bytes,6,opt,name=referrer,proto3" json:"referrer,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *UrlRedirectedEvent) Reset() {
+	*x = UrlRedirectedEvent{}
+	mi := &file_urlshortener_v1_events_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UrlRedirectedEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UrlRedirectedEvent) ProtoMessage() {}
+
+func (x *UrlRedirectedEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_urlshortener_v1_events_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UrlRedirectedEvent.ProtoReflect.Descriptor instead.
+func (*UrlRedirectedEvent) Descriptor() ([]byte, []int) {
+	return file_urlshortener_v1_events_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *UrlRedirectedEvent) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UrlRedirectedEvent) GetShortenedUrlKey() string {
+	if x != nil {
+		return x.ShortenedUrlKey
+	}
+	return ""
+}
+
+func (x *UrlRedirectedEvent) GetOccurredAtMs() int64 {
+	if x != nil {
+		return x.OccurredAtMs
+	}
+	return 0
+}
+
+func (x *UrlRedirectedEvent) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
+func (x *UrlRedirectedEvent) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *UrlRedirectedEvent) GetReferrer() string {
+	if x != nil {
+		return x.Referrer
+	}
+	return ""
+}
+
 var File_urlshortener_v1_events_proto protoreflect.FileDescriptor
 
 const file_urlshortener_v1_events_proto_rawDesc = "" +
@@ -101,7 +188,16 @@ const file_urlshortener_v1_events_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12*\n" +
 	"\x11shortened_url_key\x18\x03 \x01(\tR\x0fshortenedUrlKey\x12\x19\n" +
-	"\blong_url\x18\x04 \x01(\tR\alongUrlB\xd6\x01\n" +
+	"\blong_url\x18\x04 \x01(\tR\alongUrl\"\xd0\x01\n" +
+	"\x12UrlRedirectedEvent\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12*\n" +
+	"\x11shortened_url_key\x18\x02 \x01(\tR\x0fshortenedUrlKey\x12$\n" +
+	"\x0eoccurred_at_ms\x18\x03 \x01(\x03R\foccurredAtMs\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x04 \x01(\tR\tipAddress\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x05 \x01(\tR\tuserAgent\x12\x1a\n" +
+	"\breferrer\x18\x06 \x01(\tR\breferrerB\xd6\x01\n" +
 	"\x13com.urlshortener.v1B\vEventsProtoP\x01ZUgithub.com/pnaskardev/URL-Shortner-V1/contracts/gen/go/urlshortener/v1;urlshortenerv1\xa2\x02\x03UXX\xaa\x02\x0fUrlshortener.V1\xca\x02\x0fUrlshortener\\V1\xe2\x02\x1bUrlshortener\\V1\\GPBMetadata\xea\x02\x10Urlshortener::V1b\x06proto3"
 
 var (
@@ -116,9 +212,10 @@ func file_urlshortener_v1_events_proto_rawDescGZIP() []byte {
 	return file_urlshortener_v1_events_proto_rawDescData
 }
 
-var file_urlshortener_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_urlshortener_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_urlshortener_v1_events_proto_goTypes = []any{
-	(*UrlCreatedEvent)(nil), // 0: urlshortener.v1.UrlCreatedEvent
+	(*UrlCreatedEvent)(nil),    // 0: urlshortener.v1.UrlCreatedEvent
+	(*UrlRedirectedEvent)(nil), // 1: urlshortener.v1.UrlRedirectedEvent
 }
 var file_urlshortener_v1_events_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -139,7 +236,7 @@ func file_urlshortener_v1_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urlshortener_v1_events_proto_rawDesc), len(file_urlshortener_v1_events_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
