@@ -99,6 +99,7 @@ func main() {
 	// Your cleanup tasks go here
 	// db.Close()
 	// redisConn.Close()
-	// q.Close()
+	queueClient.Close()
+
 	fmt.Println("Fiber was successful shutdown.")
 }
