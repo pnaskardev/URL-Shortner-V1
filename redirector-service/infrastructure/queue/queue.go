@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pnaskardev/URL-Shortner-V1/shortener-service/helpers/constants"
+	constants "github.com/pnaskardev/URL-Shortner-V1/redirector-service/helpers"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -113,7 +113,7 @@ func (c *QueueClient) DeclareQueue() error {
 	}
 
 	if _, err := c.channel.QueueDeclare(
-		constants.URL_CREATED_QUEUE,
+		constants.URL_ANALYTICS_EVENT_QUEUE,
 		true,
 		false,
 		false,
@@ -124,8 +124,8 @@ func (c *QueueClient) DeclareQueue() error {
 	}
 
 	return c.channel.QueueBind(
-		constants.URL_CREATED_QUEUE,
-		constants.URL_CREATED_QUEUE,
+		constants.URL_ANALYTICS_EVENT_QUEUE,
+		constants.URL_ANALYTICS_EVENT_QUEUE,
 		constants.URL_EXCHANGE,
 		false,
 		nil,

@@ -41,6 +41,11 @@ func main() {
 		panic(err)
 	}
 
+	err = queueClient.DeclareQueue()
+	if err != nil {
+		panic(err)
+	}
+
 	customLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
 		Level:     slog.LevelDebug,

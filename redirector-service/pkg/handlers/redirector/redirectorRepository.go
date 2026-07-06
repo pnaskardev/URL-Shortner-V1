@@ -53,44 +53,42 @@ func (r repository) RedirectURL(c fiber.Ctx) error {
 	longURL, err := r.cacheClient.Get(ctx, shortenedKey).Result()
 	switch {
 	case err == nil:
-		// Cache hit — redirect straight away.
-		return c.Redirect().Status(fiber.StatusFound).To(longURL)
+		// Cache hit — longURL is set; fall through to register + redirect.
 
 	case errors.Is(err, redis.Nil):
-		// Cache miss — fall through to Postgres.
+		// Cache miss — read Postgres, then warm the cache.
+		var fetchedURL models.URLs
+		dbErr := r.dbClient.WithContext(ctx).Where("short_url_key = ?", shortenedKey).Take(&fetchedURL).Error
+
+		if errors.Is(dbErr, gorm.ErrRecordNotFound) {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+		if dbErr != nil {
+			return c.SendStatus(fiber.StatusInternalServerError)
+		}
+
+		if !fetchedURL.IsActive || fetchedURL.ExpiresAt < time.Now().UnixMilli() {
+			return c.SendStatus(fiber.StatusGone)
+		}
+
+		longURL = fetchedURL.LongURL
+		r.cacheClient.Set(ctx, shortenedKey, longURL, cacheTTL)
 
 	default:
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	var fetchedURL models.URLs
-	dbErr := r.dbClient.WithContext(ctx).Where("short_url_key = ?", shortenedKey).Take(&fetchedURL).Error
+	// Every successful redirect — hit OR miss — registers a click.
+	// Read click context from the (pooled) fiber.Ctx here, synchronously,
+	// before the fire-and-forget goroutine can outlive the request.
 
-	if errors.Is(dbErr, gorm.ErrRecordNotFound) {
-		return c.SendStatus(fiber.StatusNotFound)
-	}
-	if dbErr != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
-	}
-
-	if !fetchedURL.IsActive || fetchedURL.ExpiresAt < time.Now().UnixMilli() {
-		return c.SendStatus(fiber.StatusGone)
-	}
-
-	// Warm the cache so the next read is a hit.
-	r.cacheClient.Set(ctx, shortenedKey, fetchedURL.LongURL, cacheTTL)
-
-	// Capture click context BEFORE the goroutine — fiber.Ctx is pooled and
-	// reused for the next request once this handler returns.
 	occurredAtMs := time.Now().UnixMilli()
+
 	ipAddress := c.IP()
 	userAgent := c.Get("User-Agent")
 	referrer := c.Get("Referer")
 
-	// Push the click to the analytics pipeline. Fire-and-forget: lossy by design,
-	// must not add latency or failure to the redirect.
 	go func() {
-
 		publishCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
@@ -117,8 +115,7 @@ func (r repository) RedirectURL(c fiber.Ctx) error {
 		if err := r.queueClient.Publish(publishCtx, constants.URL_ANALYTICS_EVENT_QUEUE, body); err != nil {
 			slog.Error("PUBLISH ANALYTICS EVENT", "KEY", shortenedKey, "ERROR", err)
 		}
-
 	}()
 
-	return c.Redirect().Status(fiber.StatusFound).To(fetchedURL.LongURL)
+	return c.Redirect().Status(fiber.StatusFound).To(longURL)
 }
