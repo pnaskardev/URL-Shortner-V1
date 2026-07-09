@@ -1,0 +1,45 @@
+name: url-shortener-infra
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: urlshort-postgres
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test123
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: urlshort-redis
+    ports: ["6379:6379"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: urlshort-rabbitmq
+    ports: ["5672:5672", "15672:15672"]   # 15672 = management UI
+    volumes: [rabbitmqdata:/var/lib/rabbitmq]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  redisdata:
+  rabbitmqdata:

@@ -1,10 +1,42 @@
 # URL-Shortner-V1
 
-## Run All Services Together
+## Prerequisites
+
+- Docker + Docker Compose v2.1.1+ (the runner uses `compose up --wait`)
+- Go 1.26
+- `air` — live reload (`go install github.com/air-verse/air@latest`)
+- `buf` + `protoc-gen-go` on `PATH` (see Protobuf section)
+
+## Getting Started
+
+The backing services (Postgres, Redis, RabbitMQ) run in Docker; the Go services
+run on the host with hot-reload. One command boots infra and all four services:
 
 ```bash
-make -j4
+make dev
 ```
+
+`make dev` brings the infra containers up and waits until they report healthy,
+then launches the four services in parallel. Prefer the two steps separately:
+
+```bash
+make infra-up   # boot Postgres + Redis + RabbitMQ (blocks until healthy)
+make -j4        # run all four services via air
+```
+
+Infra management:
+
+| Command | Effect |
+|---|---|
+| `make infra-up` | Start infra, wait until healthy |
+| `make infra-down` | Stop containers, keep data |
+| `make infra-clean` | Stop + wipe volumes (fresh databases on next `up`) |
+| `make infra-logs` | Tail infra logs |
+
+RabbitMQ management UI: <http://localhost:15672> (`guest` / `guest`).
+
+> Postgres provisions three databases on first boot (`auth`, `shortener-db`,
+> `analytics-db`). To re-run the init script, `make infra-clean` then `make infra-up`.
 
 ## Protobuf / Contracts
 
