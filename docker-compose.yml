@@ -2,7 +2,7 @@ name: url-shortener-infra
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: urlshort-postgres
     environment:
       POSTGRES_USER: test
@@ -29,7 +29,7 @@ services:
       retries: 10
 
   rabbitmq:
-    image: rabbitmq:3.13-management-alpine
+    image: rabbitmq:4-management-alpine
     container_name: urlshort-rabbitmq
     ports: ["5672:5672", "15672:15672"]   # 15672 = management UI
     volumes: [rabbitmqdata:/var/lib/rabbitmq]
